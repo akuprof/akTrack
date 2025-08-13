@@ -4,6 +4,8 @@ module.exports = {
     
     // Replace this with your actual website URL where the app will be deployed
     // This will be updated based on your cloud deployment URL
-    hostURL: process.env.HOST_URL || 'https://ak-track.vercel.app',    // Toggle for URL shorteners
+    hostURL: process.env.HOST_URL || 'http://localhost:5000',
+    
+    // Toggle for URL shorteners
     use1pt: false
 };
