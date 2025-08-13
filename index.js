@@ -10,12 +10,24 @@ const TelegramBot = require('node-telegram-bot-api');
 const botToken = process.env.BOT_TOKEN || config.botToken;
 
 // Validate bot token
-if (!botToken || botToken === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
-  console.error('❌ Invalid bot token! Please set BOT_TOKEN environment variable.');
+if (!botToken) {
+  console.error('❌ Bot token is missing! Please set BOT_TOKEN environment variable.');
   process.exit(1);
 }
 
+console.log('🤖 Bot token found:', botToken.substring(0, 10) + '...');
+
 const bot = new TelegramBot(botToken, {polling: true});
+
+// Test bot connection
+bot.getMe().then((botInfo) => {
+  console.log('✅ Bot connected successfully!');
+  console.log('📱 Bot username: @' + botInfo.username);
+  console.log('🆔 Bot ID: ' + botInfo.id);
+}).catch((error) => {
+  console.error('❌ Failed to connect to bot:', error.message);
+  process.exit(1);
+});
 var jsonParser=bodyParser.json({limit:1024*1024*20, type:'application/json'});
 var urlencodedParser=bodyParser.urlencoded({ extended:true,limit:1024*1024*20,type:'application/x-www-form-urlencoded' });
 const app = express();
@@ -84,7 +96,7 @@ res.redirect("https://t.me/th30neand0nly0ne");
 bot.on('message', async (msg) => {
 const chatId = msg.chat.id;
 
- 
+console.log('📨 Received message from:', msg.chat.first_name, '(ID:', chatId + ')');
 
 if(msg?.reply_to_message?.text=="🌐 Enter Your URL"){
  createLink(chatId,msg.text); 
@@ -122,7 +134,8 @@ createNew(callbackQuery.message.chat.id);
 } 
 });
 bot.on('polling_error', (error) => {
-//console.log(error.code); 
+console.error('❌ Bot polling error:', error.message);
+console.error('🔧 Error code:', error.code);
 });
 
 
