@@ -1,11 +1,14 @@
-require('dotenv').config();
+const config = require('./config');
 const fs = require("fs");
 const express = require("express");
 var cors = require('cors');
 var bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
-const bot = new TelegramBot(process.env["bot"], {polling: true});
+
+// Use environment variable for bot token if available, otherwise use config
+const botToken = process.env.BOT_TOKEN || config.botToken;
+const bot = new TelegramBot(botToken, {polling: true});
 var jsonParser=bodyParser.json({limit:1024*1024*20, type:'application/json'});
 var urlencodedParser=bodyParser.urlencoded({ extended:true,limit:1024*1024*20,type:'application/x-www-form-urlencoded' });
 const app = express();
@@ -15,9 +18,9 @@ app.use(cors());
 app.set("view engine", "ejs");
 
 //Modify your URL here
-var hostURL="YOUR URL";
+var hostURL=config.hostURL;
 //TOGGLE for Shorters
-var use1pt=false;
+var use1pt=config.use1pt;
 
 
 
@@ -246,6 +249,7 @@ res.send("Done");
 
 
 
-app.listen(5000, () => {
-console.log("App Running on Port 5000!");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+console.log(`App Running on Port ${PORT}!`);
 });
