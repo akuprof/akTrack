@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Setup for Vercel
 
-Your TrackDown bot is now deployed on Vercel at: `https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/`
+Your TrackDown bot is now deployed on Vercel at: `https://ak-track.vercel.app/`
 
 ## 📋 Prerequisites
 
@@ -21,7 +21,7 @@ Your TrackDown bot is now deployed on Vercel at: `https://ak-track-1a77kkoc7-aku
 
 ```
 BOT_TOKEN = 7233219216:AAFMv7UmrS8_t1j1h5BMv3lkUPF7sPHE3ag
-HOST_URL = https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app
+HOST_URL = https://ak-track.vercel.app
 ```
 
 ### Step 2: Set Up Webhook
@@ -30,14 +30,14 @@ After deployment, you need to set up the webhook for your bot:
 
 1. **Visit the webhook setup URL**:
    ```
-   https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/set-webhook
+   https://ak-track.vercel.app/set-webhook
    ```
 
 2. **You should see a response like**:
    ```json
    {
      "success": true,
-     "webhookUrl": "https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/webhook"
+     "webhookUrl": "https://ak-track.vercel.app/webhook"
    }
    ```
 
@@ -55,14 +55,14 @@ After deployment, you need to set up the webhook for your bot:
 
 1. **Check webhook status**:
    ```
-   https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/
+   https://ak-track.vercel.app/
    ```
    You should see: `{"status": "TrackDown Bot is running on Vercel!", "webhook": "..."}`
 
 2. **Remove and re-set webhook**:
    ```
-   https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/remove-webhook
-   https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/set-webhook
+   https://ak-track.vercel.app/remove-webhook
+   https://ak-track.vercel.app/set-webhook
    ```
 
 3. **Check Vercel logs**:
@@ -92,10 +92,10 @@ After deployment, you need to set up the webhook for your bot:
 
 ## 🔗 Important URLs
 
-- **Main App**: `https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/`
-- **Set Webhook**: `https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/set-webhook`
-- **Remove Webhook**: `https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/remove-webhook`
-- **Webhook Endpoint**: `https://ak-track-1a77kkoc7-akuprofs-projects.vercel.app/webhook`
+- **Main App**: `https://ak-track.vercel.app/`
+- **Set Webhook**: `https://ak-track.vercel.app/set-webhook`
+- **Remove Webhook**: `https://ak-track.vercel.app/remove-webhook`
+- **Webhook Endpoint**: `https://ak-track.vercel.app/webhook`
 
 ## 🎯 Next Steps
 
