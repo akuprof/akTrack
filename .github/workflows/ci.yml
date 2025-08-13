@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests (if available)
+      run: npm test --if-present
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Verify bot token
+      run: node test-bot.js
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+    
+    - name: Deploy status
+      run: |
+        echo "✅ All tests passed!"
+        echo "📦 Build completed successfully!"
+        echo "🤖 Bot token verified!"
+        echo "🚀 Ready for deployment!"
+        if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/master" ]; then
+          echo "🔗 Railway will auto-deploy from GitHub integration"
+        fi
